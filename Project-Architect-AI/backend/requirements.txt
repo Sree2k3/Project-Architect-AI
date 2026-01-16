@@ -1,0 +1,7 @@
+fastapi==0.115.0
+uvicorn[standard]==0.30.0
+google-genai                # Official 2026 Gemini SDK
+crewai                      # For Agent orchestration
+langchain-google-genai      # Gemini bridge for LangChain
+python-dotenv               # To read your API Key
+pydantic==2.9.0             # For data validation
