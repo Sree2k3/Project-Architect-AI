@@ -1,6 +1,0 @@
-"dependencies": {
-    "next": "15.0.0",
-    "lucide-react": "^0.400.0",
-    "recharts": "^2.12.0", // For your ML visual graphs
-    "framer-motion": "^11.0.0" // For smooth AI "thinking" animations
-}
