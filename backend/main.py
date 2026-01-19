@@ -4,29 +4,33 @@ from fastapi.middleware.cors import CORSMiddleware
 from crewai import Agent, Task, Crew, LLM
 from dotenv import load_dotenv
 
+# 1. Load Environment Variables
 load_dotenv()
 
-# This prevents the library from looking for Vertex AI credentials
-api_key = os.getenv("GEMINI_API_KEY")
-os.environ["GOOGLE_API_KEY"] = api_key
-
+# 2. Initialize FastAPI
 app = FastAPI()
 
+# 3. Add CORS Middleware (Essential for connecting to your Next.js frontend)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:3000"
+    ],  # Allows your dashboard to talk to this API
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# This code tells the system: "Don't look for Google Cloud SDK.
-# Note: We don't need to pass the key here because we set it in os.environ above
-my_llm = LLM(model="gemini/gemini-1.5-flash", api_key=api_key)
+# 4. Configure Hugging Face LLM
+my_llm = LLM(
+    model="huggingface/meta-llama/Meta-Llama-3-8B-Instruct",
+    api_key=os.getenv("HUGGINGFACEHUB_API_TOKEN"),
+)
 
+# 5. Define the Agent
 architect = Agent(
     role="Senior AI Architect & Technical Mentor",
-    goal="Empower aspiring engineers by providing high-precision, actionable project roadmaps.",
+    goal="Empower aspiring engineers by providing actionable project roadmaps.",
     backstory=(
         "You are a Senior AI Solutions Architect with 15+ years of experience at NVIDIA and Google. You now specialize in technical mentoring, turning "
         "ambitious research ideas into concrete 4-step engineering plans. You focus "
@@ -35,17 +39,33 @@ architect = Agent(
         "innovative."
     ),
     llm=my_llm,
-    allow_delegation=False,
+    verbose=True,
 )
 
 
+# 6. Default Root Route
+@app.get("/")
+def read_root():
+    return {"status": "online", "message": "Architect AI Backend is Running"}
+
+
+# 7. THE FIX: Added the /plan route that was missing
 @app.get("/plan")
 def get_plan(idea: str):
+    # Create the task for the agent
     plan_task = Task(
-        description=f"Create a project roadmap for: {idea}.",
-        expected_output="A structured 4-step roadmap with technical stack recommendations.",
+        description=f"Create a detailed 4-step project roadmap for this idea: {idea}. "
+        f"Include technical stack suggestions and a brief milestone for each step.",
+        expected_output="A structured 4-step engineering roadmap.",
         agent=architect,
     )
+
+    # Initialize the Crew
     crew = Crew(agents=[architect], tasks=[plan_task], verbose=True)
-    result = crew.kickoff()
-    return {"roadmap": str(result)}
+
+    try:
+        # Start the AI thinking process
+        result = crew.kickoff()
+        return {"roadmap": str(result)}
+    except Exception as e:
+        return {"error": f"AI process failed: {str(e)}"}
