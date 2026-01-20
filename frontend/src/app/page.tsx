@@ -1,58 +1,61 @@
 "use client";
-import { useState } from "react";
+
+import { useState } from 'react';
+import RoadmapDisplay from '../components/RoadmapDisplay';
 
 export default function Home() {
-  const [input, setInput] = useState("");
-  const [result, setResult] = useState("");
+  const [idea, setIdea] = useState("");
+  const [roadmap, setRoadmap] = useState("");
   const [loading, setLoading] = useState(false);
 
   const generatePlan = async () => {
+    if (!idea) return;
     setLoading(true);
     try {
-      const response = await fetch(`http://127.0.0.1:8000/plan?idea=${input}`);
+      const response = await fetch(`http://localhost:8000/plan?idea=${encodeURIComponent(idea)}`);
       const data = await response.json();
-      setResult(data.roadmap);
+      setRoadmap(data.roadmap);
     } catch (error) {
-      setResult("Error connecting to the AI Brain. Is the backend running?");
+      console.error("Error:", error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-zinc-50 text-zinc-900">
-      <nav className="flex items-center justify-between border-b bg-white px-8 py-4">
-        <span className="text-xl font-bold text-blue-600">Project-Architect AI</span>
-      </nav>
+    // 'flex-col-reverse' flips the order: Bottom element in code appears on Top
+    <main className="flex flex-col-reverse p-8 max-w-4xl mx-auto min-h-screen">
 
-      <main className="flex flex-1 flex-col gap-8 p-8 md:flex-row">
-        {/* Input Section */}
-        <section className="flex flex-1 flex-col gap-4 rounded-xl border bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold">Project Generator</h2>
-          <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            className="flex-1 rounded-lg border p-4 text-sm focus:ring-2 focus:ring-blue-500"
-            placeholder="Describe your ML idea..."
-          />
-          <button
-            onClick={generatePlan}
-            disabled={loading}
-            className="rounded-lg bg-blue-600 py-3 font-semibold text-white hover:bg-blue-700 disabled:bg-blue-300"
-          >
-            {loading ? "AI is thinking..." : "Generate Roadmap"}
-          </button>
-        </section>
+      {/* 1. INPUT SECTION (Appears at the Bottom) */}
+      <div className="flex gap-4 mt-8 sticky bottom-8 bg-black p-4 border-t border-gray-800">
+        <input
+          type="text"
+          className="flex-1 p-3 bg-gray-800 border border-gray-700 rounded text-white"
+          placeholder="Enter your project idea..."
+          value={idea}
+          onChange={(e) => setIdea(e.target.value)}
+        />
+        <button
+          onClick={generatePlan}
+          className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded font-bold"
+          disabled={loading}
+        >
+          {loading ? "Thinking..." : "Generate"}
+        </button>
+      </div>
 
-        {/* Output Section */}
-        <section className="flex-[1.5] flex flex-col gap-4 rounded-xl border bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold">Architect Roadmap</h2>
-          <div className="flex-1 overflow-auto rounded-lg border bg-zinc-50 p-4">
-            <pre className="whitespace-pre-wrap text-sm text-zinc-700">
-              {result || "Your roadmap will appear here..."}
-            </pre>
-          </div>
-        </section>
-      </main>
-    </div>
+      {/* 2. RESULT SECTION (Appears at the Top) */}
+      <div className="flex-1 overflow-y-auto mb-4">
+        <h1 className="text-3xl font-bold mb-6 text-center">AI Project Architect</h1>
+        {roadmap ? (
+          <RoadmapDisplay roadmapText={roadmap} />
+        ) : (
+          <p className="text-gray-500 text-center mt-20">
+            Your roadmap will appear here once generated.
+          </p>
+        )}
+      </div>
+
+    </main>
   );
 }
