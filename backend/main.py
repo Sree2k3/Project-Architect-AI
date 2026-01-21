@@ -57,18 +57,33 @@ def get_plan(idea: str):
     plan_task = Task(
         description=(
             f"Create a professional engineering roadmap for: {idea}. "
-            "For EACH step, you MUST provide: "
-            "1. A clear Title. "
-            "2. A technical explanation. "
-            "3. A 'Quick Start' code snippet (e.g., Python, SQL, or Bash) wrapped in triple backticks. "
-            "4. A Milestone."
+            "For EACH step, provide a Title, Technical Explanation, 'Quick Start' code snippet, and Milestone."
         ),
         expected_output=(
-            "A structured roadmap using Markdown. Use ### for step titles. "
-            "Use standard Markdown code blocks with language identifiers (e.g., ```python)."
+            "A structured roadmap in Markdown. "
+            "STRICT RULE: Do NOT include any 'Thought:' or 'Thinking Process' sections. "
+            "Start directly with the Step 1 Title. Use ### for step titles and "
+            "standard Markdown code blocks with language identifiers (e.g., ```python)."
         ),
         agent=architect,
     )
+    """plan_task = Task(
+        description=(
+            f"Create a professional engineering roadmap for: {idea}. "
+            "For EACH step, you MUST provide: "
+            "1. A clear Title. "
+            "2. A technical explanation. "
+            "3. A 'Quick Start' code snippet wrapped in triple backticks. "
+            "4. A Milestone."
+        ),
+        expected_output=(
+            "A structured roadmap in Markdown. "
+            "STRICT RULE: Do NOT include any 'Thought:' or 'Thinking Process' sections. "
+            "Start directly with the Step 1 Title. Use ### for step titles. "
+            "Use standard Markdown code blocks with language identifiers (e.g., ```python)."
+        ),
+        agent=architect,
+    )"""
 
     # Initialize the Crew
     crew = Crew(agents=[architect], tasks=[plan_task], verbose=True)

@@ -24,3 +24,47 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@keyframes float {
+  0% {
+    transform: translate(0px, 0px);
+  }
+
+  50% {
+    transform: translate(20px, -20px);
+  }
+
+  100% {
+    transform: translate(0px, 0px);
+  }
+}
+
+.mesh-background {
+  background: radial-gradient(at 0% 0%, hsla(253, 16%, 7%, 1) 0, transparent 50%),
+    radial-gradient(at 50% 0%, hsla(225, 39%, 30%, 1) 0, transparent 50%),
+    radial-gradient(at 100% 0%, hsla(339, 49%, 30%, 1) 0, transparent 50%);
+  animation: float 10s infinite ease-in-out;
+}
+
+/* Animated background blobs */
+/* Update your globals.css */
+.hyper-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  /* Dark deep blue to purple mesh gradient */
+  background: radial-gradient(circle at 20% 30%, #0f172a 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, #1e1b4b 0%, transparent 50%),
+    #020617;
+  /* Base dark color */
+  filter: contrast(120%);
+}
+
+body {
+  background: transparent;
+  /* Allows the hyper-bg to show through */
+  color: white;
+}
