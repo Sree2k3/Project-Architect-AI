@@ -54,7 +54,7 @@ def get_plan(idea: str):
     # --- EVERYTHING BELOW IS NOW INDENTED INSIDE THE FUNCTION ---
 
     # Define the Task for creating the roadmap
-    plan_task = Task(
+    """plan_task = Task(
         description=(
             f"Create a professional engineering roadmap for: {idea}. "
             "For EACH step, provide a Title, Technical Explanation, 'Quick Start' code snippet, and Milestone."
@@ -66,8 +66,8 @@ def get_plan(idea: str):
             "standard Markdown code blocks with language identifiers (e.g., ```python)."
         ),
         agent=architect,
-    )
-    """plan_task = Task(
+    )"""
+    plan_task = Task(
         description=(
             f"Create a professional engineering roadmap for: {idea}. "
             "For EACH step, you MUST provide: "
@@ -83,7 +83,7 @@ def get_plan(idea: str):
             "Use standard Markdown code blocks with language identifiers (e.g., ```python)."
         ),
         agent=architect,
-    )"""
+    )
 
     # Initialize the Crew
     crew = Crew(agents=[architect], tasks=[plan_task], verbose=True)
