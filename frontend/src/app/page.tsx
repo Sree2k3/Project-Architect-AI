@@ -2,16 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import RoadmapDisplay from '../components/RoadmapDisplay';
-import Sidebar from '../components/Sidebar'; // We will create this component next
+import Sidebar from '../components/Sidebar';
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Home() {
   const [idea, setIdea] = useState("");
   const [roadmap, setRoadmap] = useState("");
   const [loading, setLoading] = useState(false);
-  const [history, setHistory] = useState([]); // State for the sidebar list
+  const [history, setHistory] = useState([]);
 
-  // 1. LOAD: Load history and the last active project on startup
   useEffect(() => {
     const savedHistory = localStorage.getItem("architect_history");
     const lastRoadmap = localStorage.getItem("architect_last_roadmap");
@@ -22,7 +21,6 @@ export default function Home() {
     if (lastIdea) setIdea(lastIdea);
   }, []);
 
-  // 2. SAVE: Persist the active project so it survives refresh
   useEffect(() => {
     if (roadmap) {
       localStorage.setItem("architect_last_roadmap", roadmap);
@@ -31,7 +29,7 @@ export default function Home() {
   }, [roadmap, idea]);
 
   const generatePlan = async () => {
-    if (!idea) return;
+    if (!idea || loading) return;
     setLoading(true);
     try {
       const response = await fetch(`http://localhost:8000/plan?idea=${encodeURIComponent(idea)}`);
@@ -39,7 +37,6 @@ export default function Home() {
 
       setRoadmap(data.roadmap);
 
-      // ADD TO HISTORY: Create a new history entry
       const newEntry = { idea, roadmap: data.roadmap, timestamp: Date.now() };
       const updatedHistory = [newEntry, ...history.filter(item => item.idea !== idea)];
 
@@ -63,6 +60,9 @@ export default function Home() {
   const selectFromHistory = (item) => {
     setIdea(item.idea);
     setRoadmap(item.roadmap);
+    localStorage.setItem("architect_last_roadmap", item.roadmap);
+    localStorage.setItem("architect_last_idea", item.idea);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const deleteHistoryItem = (timestamp) => {
@@ -72,8 +72,7 @@ export default function Home() {
   };
 
   return (
-    // Add this inside your Home component return:
-    <div className="flex h-screen w-full overflow-hidden bg-[#030712]">
+    <div className="flex h-screen w-full overflow-hidden bg-[#030712] selection:bg-blue-500/30">
       <Sidebar
         history={history}
         onSelect={selectFromHistory}
@@ -82,20 +81,21 @@ export default function Home() {
         activeIdea={idea}
       />
 
-      <main className="flex-1 relative flex flex-col-reverse overflow-y-auto overflow-x-hidden">
+      <main className="flex-1 relative flex flex-col-reverse overflow-y-auto overflow-x-hidden custom-scrollbar">
         {/* 1. INPUT AREA */}
-        <div className="sticky bottom-0 z-50 pb-8 pt-4 bg-transparent">
-          <div className="max-w-4xl mx-auto flex gap-4 p-4 backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl shadow-2xl">
+        <div className="sticky bottom-0 z-50 pb-10 pt-6 px-4 bg-gradient-to-t from-[#030712] via-[#030712]/90 to-transparent">
+          <div className="max-w-4xl mx-auto flex gap-4 p-2 pl-6 backdrop-blur-2xl bg-white/[0.03] border border-white/10 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all focus-within:border-blue-500/50 focus-within:shadow-[0_0_30px_rgba(59,130,246,0.15)]">
             <input
               type="text"
-              className="flex-1 bg-transparent border-none outline-none text-white placeholder-gray-500 p-2"
-              placeholder="Start a new architecture..."
+              className="flex-1 bg-transparent border-none outline-none text-white placeholder-gray-500 py-3 text-lg"
+              placeholder="Deploy a new vision..."
               value={idea}
               onChange={(e) => setIdea(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && generatePlan()}
+              disabled={loading}
             />
 
-            {roadmap && (
+            {roadmap && !loading && (
               <button onClick={handleReset} className="text-gray-500 hover:text-red-400 px-2 transition-colors">
                 ✕
               </button>
@@ -103,29 +103,53 @@ export default function Home() {
 
             <button
               onClick={generatePlan}
-              className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-xl font-bold transition-all disabled:opacity-50"
-              disabled={loading}
+              className={`min-w-[140px] flex items-center justify-center rounded-2xl font-bold transition-all ${loading
+                  ? "bg-transparent cursor-default"
+                  : "bg-blue-600 hover:bg-blue-500 hover:scale-[1.02] active:scale-[0.98] text-white px-8 py-3"
+                }`}
+              disabled={idea === "" || loading}
             >
-              {loading ? "Architecting..." : "Architect"}
+              {loading ? (
+                <div className="flex items-center gap-4 px-4 text-left">
+                  <div className="relative w-5 h-5">
+                    <div className="absolute inset-0 border-2 border-blue-500/20 rounded-full" />
+                    <div className="absolute inset-0 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                  </div>
+                  <div className="flex flex-col leading-tight">
+                    <span className="text-[10px] uppercase tracking-[0.2em] text-blue-500 font-black animate-pulse">
+                      Analyzing
+                    </span>
+                    <span className="text-[8px] text-gray-500 font-mono">Neural Engine Active</span>
+                  </div>
+                </div>
+              ) : (
+                "Architect"
+              )}
             </button>
           </div>
         </div>
 
         {/* 2. RESULTS AREA */}
-        <div className="flex-1 flex flex-col justify-end max-w-5xl mx-auto w-full pb-20">
+        <div className="flex-1 flex flex-col justify-end max-w-5xl mx-auto w-full pb-24 px-6">
           <AnimatePresence mode="wait">
             {roadmap ? (
               <RoadmapDisplay key={idea} roadmapText={roadmap} />
             ) : (
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-center mb-40"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 1.05 }}
+                className="text-center mb-60"
               >
-                <h1 className="text-7xl font-extrabold text-white mb-4 tracking-tighter">
-                  AI Project <span className="text-blue-500">Architect</span>
+                <div className="inline-block px-3 py-1 mb-6 rounded-full border border-blue-500/20 bg-blue-500/5 text-[10px] uppercase tracking-[0.3em] text-blue-500 font-bold">
+                  System v2.6.0 Stable
+                </div>
+                <h1 className="text-8xl font-extrabold text-white mb-6 tracking-tighter leading-none">
+                  AI Project <span className="bg-clip-text text-transparent bg-gradient-to-b from-blue-400 to-blue-700">Architect</span>
                 </h1>
-                <p className="text-gray-400 text-xl font-light italic">Select a project or start a new vision.</p>
+                <p className="text-gray-500 text-xl font-light max-w-lg mx-auto leading-relaxed">
+                  Design engineering roadmaps with <span className="text-gray-300">Neural Precision.</span> Select a project to begin.
+                </p>
               </motion.div>
             )}
           </AnimatePresence>

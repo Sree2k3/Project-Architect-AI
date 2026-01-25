@@ -1,6 +1,6 @@
 "use client";
 import { Plus, MessageSquare, Trash2, Settings, Menu, SquarePen } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Sidebar({ history, onSelect, onNew, onDelete, activeIdea }) {
     return (
@@ -17,9 +17,9 @@ export default function Sidebar({ history, onSelect, onNew, onDelete, activeIdea
 
                 <button
                     onClick={onNew}
-                    className="flex items-center justify-center p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white transition-all w-full group-hover:justify-start group-hover:gap-3"
+                    className="flex items-center justify-center p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white transition-all w-full group-hover:justify-start group-hover:gap-3 shadow-[0_0_20px_rgba(255,255,255,0.02)]"
                 >
-                    <SquarePen size={20} className="shrink-0" />
+                    <SquarePen size={20} className="shrink-0 text-blue-400" />
                     <span className="hidden group-hover:block text-sm font-medium whitespace-nowrap overflow-hidden">
                         New Project
                     </span>
@@ -34,22 +34,32 @@ export default function Sidebar({ history, onSelect, onNew, onDelete, activeIdea
 
                 {history.map((item) => (
                     <div key={item.timestamp} className="relative group/item">
+                        {/* ACTIVE GLOW INDICATOR */}
+                        {activeIdea === item.idea && (
+                            <motion.div
+                                layoutId="activeGlow"
+                                className="absolute left-[-12px] w-[3px] h-3/5 bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.8)] rounded-full z-10"
+                                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                            />
+                        )}
+
                         <button
                             onClick={() => onSelect(item)}
-                            className={`flex items-center w-full p-3 rounded-lg transition-all text-sm text-left truncate group-hover:justify-start ${activeIdea === item.idea
-                                    ? "bg-blue-600/20 text-blue-400 border border-blue-500/30"
-                                    : "text-gray-400 hover:bg-white/5 hover:text-white"
+                            className={`flex items-center w-full p-3 rounded-lg transition-all text-sm text-left truncate group-hover:justify-start relative ${activeIdea === item.idea
+                                ? "bg-blue-500/10 text-blue-400 border border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.05)]"
+                                : "text-gray-400 hover:bg-white/5 hover:text-white"
                                 }`}
                         >
-                            <MessageSquare size={18} className="shrink-0" />
-                            <span className="hidden group-hover:block ml-3 truncate pr-4">
+                            <MessageSquare size={18} className={`shrink-0 ${activeIdea === item.idea ? "text-blue-400" : ""}`} />
+                            <span className="hidden group-hover:block ml-3 truncate pr-6 font-medium">
                                 {item.idea}
                             </span>
                         </button>
 
+                        {/* DELETE BUTTON */}
                         <button
                             onClick={(e) => { e.stopPropagation(); onDelete(item.timestamp); }}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover/item:opacity-100 p-1 hover:text-red-400 transition-all hidden group-hover:block"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover/item:opacity-100 p-1.5 hover:text-red-400 transition-all hidden group-hover:block"
                         >
                             <Trash2 size={14} />
                         </button>

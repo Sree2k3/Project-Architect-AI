@@ -3,7 +3,7 @@ import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/cjs/styles/prism';
-import { Copy, Check, Terminal, Cpu, Layout, Workflow, Box } from 'lucide-react';
+import { Copy, Check, Terminal, Cpu, Layout, Workflow, Box, Layers } from 'lucide-react'; // Added Layers
 import { motion } from 'framer-motion';
 import GlassCard from './GlassCard';
 
@@ -27,7 +27,6 @@ const CopyButton = ({ code }) => {
 export default function RoadmapDisplay({ roadmapText }) {
     if (!roadmapText) return null;
 
-    // Split by "Step X" but keep the delimiter to help identify titles
     const rawSections = roadmapText
         .split(/(?=### Step|Step \d:)/g)
         .map(s => s.trim())
@@ -35,22 +34,43 @@ export default function RoadmapDisplay({ roadmapText }) {
 
     return (
         <div className="flex flex-col gap-24 pb-40 max-w-5xl mx-auto w-full">
-            {rawSections.map((section, index) => {
 
-                // 1. IMPROVED TITLE EXTRACTION: Specifically looks for the text after "Step X:"
+            {/* HYPERREALISTIC TECH STACK SUMMARY (Bento Grid) */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12"
+            >
+                {[
+                    { label: "Architecture", value: "Microservices", icon: <Layers size={16} /> },
+                    { label: "Intelligence", value: "Generative AI", icon: <Cpu size={16} /> },
+                    { label: "Deployment", value: "Edge Optimized", icon: <Terminal size={16} /> }
+                ].map((stat, i) => (
+                    <GlassCard key={i} className="!p-4 border-white/5 bg-white/[0.02] flex items-center gap-4 hover:bg-white/[0.05] transition-colors">
+                        <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.1)]">
+                            {stat.icon}
+                        </div>
+                        <div>
+                            <p className="text-[10px] uppercase tracking-widest text-gray-500 font-bold">{stat.label}</p>
+                            <p className="text-sm text-white font-medium">{stat.value}</p>
+                        </div>
+                    </GlassCard>
+                ))}
+            </motion.div>
+
+            {/* ROADMAP PHASES */}
+            {rawSections.map((section, index) => {
                 const titleLine = section.split('\n')[0];
                 const sectionTitle = titleLine.replace(/### Step \d+:?|Step \d+:?/i, "").trim() || `Phase 0${index + 1}`;
 
-                // 2. PRESERVE CODE BLOCKS: Only remove the specific redundant header lines
                 const cleanBody = section
-                    .replace(titleLine, "") // Remove only the first line (the title)
+                    .replace(titleLine, "")
                     .replace(/Technical Explanation:?\n?/i, "")
-                    .replace(/Title:.*\n?/i, "") // Removes redundant "Title:" label from AI
+                    .replace(/Title:.*\n?/i, "")
                     .trim();
 
                 return (
                     <motion.div key={index} initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-                        {/* LARGE PROFESSIONAL HEADER */}
                         <div className="flex items-end gap-6 mb-8 px-2">
                             <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-600/10 text-blue-400 border border-blue-500/20 shadow-[0_0_30px_rgba(59,130,246,0.1)]">
                                 {sectionIcons[index % sectionIcons.length]}
@@ -70,7 +90,6 @@ export default function RoadmapDisplay({ roadmapText }) {
                                 <ReactMarkdown
                                     children={cleanBody}
                                     components={{
-                                        // This ensures code blocks are detected and styled with the copy button
                                         code({ node, inline, className, children, ...props }) {
                                             const match = /language-(\w+)/.exec(className || '');
                                             const codeString = String(children).replace(/\n$/, '');
